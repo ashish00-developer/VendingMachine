@@ -1,0 +1,128 @@
+﻿@model VendingMachine.Models.VendingMachineHelper
+
+<style>
+    .button {
+        padding: 20px 100px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+</style>
+
+
+@foreach(var item in Model.Products)
+{
+    <div>
+        <input type="button" class="button" id="Drink" value="@item.Name" onclick="selectBeverage(this)" />
+    </div>  
+}
+
+
+<div>
+    <input type="hidden" id="Total"/>
+</div>
+
+
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        @*<span class="close" onclick="Close()">&times;</span>*@
+        <input type="text" id="coin" required="required" />
+        <input type="button" value="Insert" onclick="validateAmount()" />
+        <input type="button" value="Cancel Order" onclick="Close()" />
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    var modal = document.getElementById("myModal");
+    function selectBeverage(element) {
+        $.ajax({
+            url: "/Home/SelectProduct",
+            type: "post",
+            data: { "Name": element.value },
+            success: function (d) {
+                if ($('#Total').val() == '') {
+                    $('#coin').attr("placeholder", "Please Enter Amount $" + d.price.toFixed(2));
+                    $('#Total').val(d.price);
+                }
+                else {
+                    $('#coin').attr("placeholder", "Please Enter Amount $" + $('#Total').val().toFixed(2));
+                }
+                
+                modal.style.display = "block";
+            }
+        });
+    }
+    function validateAmount() {
+        modal.style.display = "none";
+        var amount = $('#coin').val();
+        var total = $('#Total').val();
+        var remaining = total - amount;
+        if (remaining > 0) {
+            $('#coin').val('');
+            $('#coin').attr("placeholder", "Please Enter Amount $" + remaining.toFixed(2));
+            var total = $('#Total').val(remaining);
+            modal.style.display = "block";
+        }
+        else if (remaining < 0)
+        {
+            alert("Please collect your change $" + (Math.abs(remaining)).toFixed(2));
+            GiveDrink();
+        }
+        else {
+            GiveDrink();
+        }
+    }
+
+    function GiveDrink() {
+        alert("Happy To Help You.");
+        location.reload();
+    }
+    function Close() {
+        modal.style.display = "none";
+        GiveDrink();
+    }
+
+</script>
+
